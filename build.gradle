@@ -1,0 +1,45 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = "me.nallar"
+archivesBaseName = project.name
+description = "Improves server startup performance"
+version = "0.1-SNAPSHOT"
+
+def calculateVersion() {
+	def ver = project.version.toString().replace("-SNAPSHOT", "")
+	if (System.env.BUILD_NUMBER != null)
+		return ver + "-jenkins." + System.env.BUILD_NUMBER
+	if (project.hasProperty("release"))
+		return ver + '-' + project.release
+	return ver + "-dev"
+}
+
+repositories {
+	jcenter()
+	maven { url "https://libraries.minecraft.net/" }
+	maven { url "https://repo.nallar.me/" }
+}
+
+dependencies {
+	compile 'net.minecraft:launchwrapper:1.12'
+	compile 'org.projectlombok:lombok:1.16.12'
+}
+
+tasks.withType(JavaCompile) {
+	sourceCompatibility = 8
+	targetCompatibility = 8
+	options.with {
+		encoding = 'UTF-8'
+		compilerArgs << "-Xlint:all" << '-Xlint:-path' << '-Xlint:-processing' << '-Xlint:-rawtypes' << '-Xlint:-serial'
+	}
+}
+
+jar {
+	manifest { attributes ( "Main-Class": "net.minecraft.launchwrapper.nallar.cachingclassloader.Main" ) }
+	archiveName = project.name + '-' + calculateVersion() + ".jar"
+}
+
+wrapper {
+	gradleVersion = "3.3"
+}
