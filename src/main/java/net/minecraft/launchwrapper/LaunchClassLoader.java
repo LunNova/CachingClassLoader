@@ -37,6 +37,7 @@ import java.util.jar.Attributes.*;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class LaunchClassLoader extends URLClassLoader implements CachingClassLoader {
 	public static final int BUFFER_SIZE = 1 << 16; // 64kb
+	public static final String CACHING_CLASS_LOADER_LOADED = "cachingClassLoader.loaded";
 	private static final Set<String> LAUNCH_TARGETS = new HashSet<>(Arrays.asList(new String[]{"net.minecraft.server.MinecraftServer"}));
 	private static final String[] RESERVED_NAMES = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
 	private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
@@ -75,9 +76,9 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 	@SneakyThrows
 	public LaunchClassLoader(URL[] sources) {
 		super(sources, null);
-		if (Objects.equals(System.getProperty("cachingClassLoader.loaded"), "true"))
+		if (Objects.equals(System.getProperty(CACHING_CLASS_LOADER_LOADED), "true"))
 			throw new Error("Only one LaunchClassLoader instance should exist");
-		System.setProperty("cachingClassLoader.loaded", "true");
+		System.setProperty(CACHING_CLASS_LOADER_LOADED, "true");
 
 		this.sources = new ArrayList<>(Arrays.asList(sources));
 
