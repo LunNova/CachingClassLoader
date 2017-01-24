@@ -248,20 +248,25 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 
 		try {
 			val transformedName = transformName(name);
+			val untransformedName = untransformName(name);
 			if (!transformedName.equals(name))
 				throw new Error("Asked for '" + name + "', but that should be called '" + transformedName + "'");
 
-			val untransformedName = untransformName(name);
-			if (!allowMinecraftClassLoading && LAUNCH_TARGETS.contains(name)) {
-				// We're launching now
-				allowMinecraftClassLoading = true;
-				cache.updateCacheState();
-				LogWrapper.info("Detected launch target load %s", name);
-			}
-			if (!allowMinecraftClassLoading && !untransformedName.equals(transformedName) && transformedName.startsWith("net.minecraft.") && !transformedName.startsWith("net.minecraft.crash")) {
-				val e = new Error("Can not load " + transformedName + "/" + untransformedName + " as we are not ready to load minecraft classes");
-				LogWrapper.log(Level.ERROR, e, "");
-				throw e;
+			boolean neverCache = false;
+			if (!allowMinecraftClassLoading) {
+				if (LAUNCH_TARGETS.contains(name)) {
+					// We're launching now
+					neverCache = true;
+					allowMinecraftClassLoading = true;
+					cache.updateCacheState();
+					LogWrapper.info("Detected launch target load %s", name);
+				} else if (transformedName.startsWith("net.minecraft.crash")) {
+					neverCache = true;
+				} else if (!untransformedName.equals(transformedName) && transformedName.startsWith("net.minecraft.")) {
+					val e = new Error("Can not load " + transformedName + "/" + untransformedName + " as we are not ready to load minecraft classes");
+					LogWrapper.log(Level.ERROR, e, "");
+					throw e;
+				}
 			}
 
 			val lastDot = untransformedName.lastIndexOf('.');
@@ -309,7 +314,7 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 
 			byte[] transformedClass = cache.getClassBytes(transformedName);
 			val needsCached = transformedClass == null;
-			if (needsCached)
+			if (needsCached || neverCache)
 				transformedClass = runTransformers(untransformedName, transformedName, classBytes == null ? getClassBytes(untransformedName) : classBytes);
 
 			if (transformedClass == null)
