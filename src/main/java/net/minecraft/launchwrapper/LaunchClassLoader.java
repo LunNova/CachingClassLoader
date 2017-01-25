@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import lombok.val;
 import net.minecraft.launchwrapper.nallar.cachingclassloader.Cache;
 import net.minecraft.launchwrapper.nallar.cachingclassloader.CachingClassLoader;
+import net.minecraft.launchwrapper.nallar.cachingclassloader.PropertyLoader;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 
@@ -50,6 +51,11 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 	@SuppressWarnings("MismatchedReadAndWriteOfArray")
 	private static final byte[] BYTE_CACHE_ERRORED = new byte[0];
 	private static final Class<?> CLASS_CACHE_ERRORED = Object.class;
+
+	static {
+		PropertyLoader.loadPropertiesFromFile(new File("./config/CachingClassLoader.cfg"));
+	}
+
 	/**
 	 * Parent classloader - typically sun.misc.Launcher$AppClassLoader
 	 * Used to load classes which are excluded from this transformer
@@ -64,7 +70,7 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 	private List<IClassTransformer> transformers = new ArrayList<>();
 	private Map<String, Class<?>> cachedClasses_ = new ConcurrentHashMap<>();
 	//Vanilla one - kept normal on first starts, cached starts left empty, for sponge compat
-	private Map<String, Class<?>> cachedClasses = cache.isFreshStart() ? cachedClasses_ : Collections.emptyMap();
+	private Map<String, Class<?>> cachedClasses = (!PropertyLoader.enableSpongeWorkarounds() || cache.isFreshStart()) ? cachedClasses_ : Collections.emptyMap();
 	private Set<String> classLoaderExceptions = new HashSet<>();
 	private Set<String> doubleLoadExceptions = new HashSet<>();
 	private Set<String> transformerExceptions = new HashSet<>();
@@ -256,12 +262,12 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 			if (!allowMinecraftClassLoading) {
 				if (LAUNCH_TARGETS.contains(name)) {
 					// We're launching now
-					neverCache = true;
+					neverCache = PropertyLoader.enableSpongeWorkarounds();
 					allowMinecraftClassLoading = true;
 					cache.updateCacheState();
 					LogWrapper.info("Detected launch target load %s", name);
 				} else if (transformedName.startsWith("net.minecraft.crash")) {
-					neverCache = true;
+					neverCache = PropertyLoader.enableSpongeWorkarounds();
 				} else if (!untransformedName.equals(transformedName) && transformedName.startsWith("net.minecraft.")) {
 					val e = new Error("Can not load " + transformedName + "/" + untransformedName + " as we are not ready to load minecraft classes");
 					LogWrapper.log(Level.ERROR, e, "");

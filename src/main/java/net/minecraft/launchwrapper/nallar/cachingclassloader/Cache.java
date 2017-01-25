@@ -14,6 +14,7 @@ import java.util.zip.*;
 public class Cache {
 	private static final String nameFormat = "transformed-classes-%d.temp";
 	private final File dir;
+	private final boolean enabled;
 	private Map<String, Callable<InputStream>> classes = new HashMap<>();
 	private ZipOutputStream nextCache;
 	private int cacheZipCount = 0;
@@ -28,6 +29,10 @@ public class Cache {
 
 		dir = dir.getCanonicalFile();
 		this.dir = dir;
+
+		enabled = PropertyLoader.enableCaching();
+		if (!enabled)
+			return;
 
 		val cacheStateFile = new File(dir, "cachestate.obj");
 		val oldState = CacheState.readFromFile(cacheStateFile);
@@ -81,6 +86,9 @@ public class Cache {
 
 	@SneakyThrows
 	public byte[] getClassBytes(String name) {
+		if (!enabled)
+			return null;
+
 		val isCallable = classes.get(name);
 		if (isCallable == null)
 			return null;
@@ -92,6 +100,9 @@ public class Cache {
 
 	@SneakyThrows
 	public synchronized void saveClassBytes(String name, byte[] contents) {
+		if (!enabled)
+			return;
+
 		if (cachedClasses > 5000) {
 			closeCurrentCache();
 		}

@@ -17,11 +17,14 @@ class CacheState implements Serializable {
 	List<FileState> states;
 
 	CacheState(File directory) {
-		states = search(new ArrayList<>(), directory, 0);
+		states = new ArrayList<>();
+		if (!PropertyLoader.onlyInvalidateCacheUsingCacheKey())
+			search(states, directory, 0);
+		states.add(new FileState(PropertyLoader.getCacheKey()));
 	}
 
 	@SneakyThrows
-	private static List<FileState> search(List<FileState> fileStates, File directory, int depth) {
+	private static void search(List<FileState> fileStates, File directory, int depth) {
 		if (depth > 20) {
 			throw new IllegalArgumentException(directory + " depth too high: " + depth);
 		}
@@ -45,8 +48,6 @@ class CacheState implements Serializable {
 		}
 
 		fileStates.sort(Comparator.comparing(a -> a.path));
-
-		return fileStates;
 	}
 
 	static CacheState readFromFile(File file) {
@@ -87,6 +88,12 @@ class CacheState implements Serializable {
 			path = f.getCanonicalPath();
 			time = f.lastModified();
 			size = f.length();
+		}
+
+		FileState(String key) {
+			path = key;
+			time = 0;
+			size = 0;
 		}
 	}
 }
