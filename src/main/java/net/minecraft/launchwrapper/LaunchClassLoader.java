@@ -90,7 +90,7 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 
 		// classloader exclusions
 		addClassLoaderExclusion("argo.");
-		addClassLoaderExclusion("com.google.common");
+		addClassLoaderExclusion("com.google.");
 		addClassLoaderExclusion("com.mojang.");
 		addClassLoaderExclusion("java.");
 		addClassLoaderExclusion("javax.");
@@ -102,13 +102,15 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 		addClassLoaderExclusion("sun.");
 
 		// transformer exclusions
-		addTransformerExclusion("com.google.");
+		//addTransformerExclusion("com.google.");
 		addTransformerExclusion("javassist.");
+		addTransformerExclusion("kotlin.");
 		addTransformerExclusion("net.minecraft.launchwrapper.injector.");
 
 		// allow double loading without warning
 		// TODO: fml.common.asm may actually be caused by a bug, investigate what loads them in earlier
-		addDoubleLoadExclusion("com.google.gson.");
+		// A mod had a bug which required this to be classloaded in same classloader.
+		//addDoubleLoadExclusion("com.google.gson.");
 		addDoubleLoadExclusion("net.minecraftforge.fml.common.asm.transformers.");
 		addDoubleLoadExclusion("net.minecraftforge.fml.common.asm.ASMTransformerWrapper");
 		addDoubleLoadExclusion("net.minecraftforge.server.console.");
