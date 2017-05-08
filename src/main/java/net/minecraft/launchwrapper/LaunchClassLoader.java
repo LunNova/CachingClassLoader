@@ -39,7 +39,7 @@ import java.util.jar.Attributes.*;
 public class LaunchClassLoader extends URLClassLoader implements CachingClassLoader {
 	public static final int BUFFER_SIZE = 1 << 16; // 64kb
 	public static final String CACHING_CLASS_LOADER_LOADED = "cachingClassLoader.loaded";
-	private static final Set<String> LAUNCH_TARGETS = new HashSet<>(Arrays.asList(new String[]{"net.minecraft.server.MinecraftServer"}));
+	private static final Set<String> LAUNCH_TARGETS = new HashSet<>(Arrays.asList("net.minecraft.server.MinecraftServer", "net.minecraft.client.Minecraft"));
 	private static final String[] RESERVED_NAMES = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
 	private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
 	private static final boolean LOG_PACKAGE_TAMPERING = Boolean.parseBoolean(System.getProperty("cachingClassLoader.logPackageTampering", "false"));
