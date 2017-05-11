@@ -54,6 +54,7 @@ public class LaunchClassLoader extends URLClassLoader implements CachingClassLoa
 
 	static {
 		PropertyLoader.loadPropertiesFromFile(new File("./config/CachingClassLoader.cfg"));
+		ClassLoader.registerAsParallelCapable();
 	}
 
 	/**
